@@ -1,4 +1,4 @@
-import Temporal.Music.Notation
+import Temporal.Music
 
 type ChordType = [Tone N12]
 
@@ -7,7 +7,7 @@ majCh, minCh :: ChordType
 majCh = [0, 4, 7]
 minCh = [0, 3, 7]
 
-arpeggi :: Tone N12 -> ChordType -> Score () (Tone N12)
+arpeggi :: Tone P12 -> ChordType -> Score12 ()
 arpeggi baseNote chordType = line $ map return $ pchs
     where pchs = map ((+ baseNote) . (chordType !! )) [0, 1, 2, 1, 2, 1]
 

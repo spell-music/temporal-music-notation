@@ -1,4 +1,6 @@
--- | specific scales
+-- | Specific scales. Scale constructor makes scale that starts
+-- at the given frequency.
+
 module Temporal.Music.Scales 
 (
     -- * just scales  
