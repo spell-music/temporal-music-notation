@@ -207,11 +207,11 @@ invert center = fmap $ mapPitch $
 --
 
 -- | Shortcut for 'rest'
-r :: Media t => Dur t -> t
+r :: Time t => t -> Track t a
 r = rest
 
 bn, wn, hn, qn, en, sn, tn  :: 
-    (Fractional (Dur t), Temporal t) => t -> t
+    (Fractional t, Time t) => Track t a -> Track t a
 
 bn = stretch 2
 wn = id
@@ -222,10 +222,10 @@ sn = stretch $ 1/16
 tn = stretch $ 1/32
 
 dbn, dwn, dhn, dqn, den, dsn, dtn :: 
-        (Fractional (Dur t), Temporal t) => t -> t
+    (Fractional t, Time t) => Track t a -> Track t a
 
 -- | Synonym to @'stretch' (3/2)@
-dot :: (Fractional (Dur t), Temporal t) => t -> t
+dot :: (Fractional t, Time t) => Track t a -> Track t a
 dot = stretch $ 3/2
 
 dbn = dot . bn
@@ -238,7 +238,7 @@ dtn = dot . tn
 
 
 bnr, wnr, hnr, qnr, enr, snr, tnr ::
-    (Fractional (Dur t), Media t) => t
+    (Fractional t, Time t) => Track t a
 
 wnr = rest 1
 
@@ -250,7 +250,7 @@ snr = sn wnr
 tnr = tn wnr
 
 dbnr, dwnr, dhnr, dqnr, denr, dsnr, dtnr ::
-        (Fractional (Dur t), Media t) => t
+    (Fractional t, Time t) => Track t a
 
 dbnr = dbn wnr
 dwnr = dwn wnr
@@ -259,6 +259,4 @@ dqnr = dqn wnr
 denr = den wnr
 dsnr = dsn wnr
 dtnr = dtn wnr
-
-
 
