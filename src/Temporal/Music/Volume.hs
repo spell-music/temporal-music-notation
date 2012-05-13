@@ -6,7 +6,7 @@
 module Temporal.Music.Volume(
         Amp, Diap(..),
         -- * Volume
-        Volume(..), fromLevel, Accent, HasDiap(..),
+        Volume(..), fromLevel, mediumVolume, Accent, HasDiap(..),
         -- * VolumeLike
         VolumeLike(..), mapVolume,
         -- * Rendering
@@ -40,6 +40,17 @@ data Volume a = Volume {
 -- Diapason is set to default value (see 'HasDiap' class). 
 fromLevel :: HasDiap a => a -> Volume a
 fromLevel a = Volume (defDiap a) 0 $ Sat a
+
+-- | Constructs value of type 'Volume' with medium 'Level'. 
+-- 'Accent' is set to zero. Diapason is set to default value.
+mediumVolume :: (HasDiap a, Finite a) => Volume a
+mediumVolume = Volume (defDiap $ proxy lev) 0 lev
+    where minb = minBound `asTypeOf` lev
+          lev  = toEnum $ fromEnum minb + len2
+          len2 = quot (domLength lev) 2
+          proxy :: Sat a -> a
+          proxy = undefined
+
 
 -- | Assign default diapason for some type.
 class HasDiap a where

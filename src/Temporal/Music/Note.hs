@@ -1,13 +1,16 @@
-{-# LANGUAGE TypeFamilies, FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies, FlexibleContexts, FlexibleInstances #-}
 
 -- | This module gives an example of complete musical structure.
 -- It defines the notion of note. 
 module Temporal.Music.Note(
         Note(..), note,
-        Drum(..), drum
+        Drum(..), drum, bam
     )
 where
 
+import Data.Finite
+import Temporal.Media(temp)
+import Temporal.Music.Track(Score, accent)
 import Temporal.Music.Volume
 import Temporal.Music.Pitch
 
@@ -57,3 +60,6 @@ instance VolumeLike (Drum vol a) where
 drum :: HasDiap vol => vol -> Drum vol a
 drum vol = Drum (fromLevel vol) Nothing
 
+-- | Constructs drum note with given accent. Level is set to medium value.
+bam :: (HasDiap vol, Finite vol) => Accent -> Score (Drum vol a)
+bam a = accent a $ temp $ Drum mediumVolume Nothing
