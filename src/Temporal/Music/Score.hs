@@ -24,7 +24,10 @@ module Temporal.Music.Score(
     louder, quieter, loud, quiet, envelope, envelopeSeg, envelopeRel, 
     -- * Pitch control
     setScale, setBend, setStep, step, bend,
-    lower, higher, low, high, l', ll', hh', h',
+    lower, higher, low, high, 
+    -- ** Shortcuts
+    -- | Denotes @lower 1-2@ and @higher 1-2@.
+    l', ll', hh', h',
     -- * Time stretching   
     r, dot, ddot, tri, bpm,
 
@@ -283,7 +286,7 @@ bend b = fmap $ mapPitch $
     \p -> p{ pitchBend = b + pitchBend p }
 
 -- | Sets step value
-setStep :: PitchLike a => Int -> Score a -> Score a
+setStep :: PitchLike a => Step -> Score a -> Score a
 setStep s = fmap $ mapPitch $ 
     \p -> p{ pitchStep = s }
 
