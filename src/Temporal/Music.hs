@@ -9,11 +9,11 @@ module Temporal.Music(
     module Temporal.Music.Pitch,
     module Temporal.Music.Volume,
     module Temporal.Music.Note,
-    module Temporal.Music.Track)
+    module Temporal.Music.Score)
 
 where
 
 import Temporal.Music.Pitch
 import Temporal.Music.Volume
 import Temporal.Music.Note
-import Temporal.Music.Track
+import Temporal.Music.Score

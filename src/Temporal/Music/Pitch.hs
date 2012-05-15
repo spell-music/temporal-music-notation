@@ -1,24 +1,19 @@
-{-# LANGUAGE 
-       TypeFamilies, 
-       FlexibleContexts #-}
-
 -- | This module defines the notion of pitch. 
 module Temporal.Music.Pitch (
     Hz, Interval, c1, a1, transpose,
     -- * Pitch
-    Pitch(..), fromStep, Bend, Octave, 
-    HasScale(..),
+    Pitch(..), fromStep, Bend, Octave, Step,
     -- * Scale
     Scale(..), fromIntervals, 
-    scaleStep, scaleSize, 
+    scaleStep, scaleLength, 
     -- * PitchLike
     PitchLike(..), mapPitch,
     -- * Render  
-    hz, pitchAsDouble, scaleAt
+    hz, scaleAt
 )
 where
 
-import Data.Finite
+import Data.Default
 import qualified Data.Vector as V
 
 -- | Cycles per second
@@ -41,34 +36,33 @@ a1 = 440
 -- | 'Pitch' denotes 'Hz' value. But it's not a double for ease of
 -- performing some musical transformations, transposition, bend, 
 -- inversion, changing scales. 'Pitch' can be converted to 'Hz' with 
--- function 'hz'. Pitch contains 'Scale', and coordinates. 
--- Pitch coordinate is triple @(bend, octave, step)@. 'Bend'
--- denotes divergens from vertices of scale grid. 'Octave' is
--- an integer. Step is some 'Finite' value. 
---
--- Step is not just
--- an integer for ease of automatic 'Scale' assigning. There is
--- a class 'HasScale'. You can define your oun type for step and
--- construct pitch with 'fromStep' function. 
-data Pitch a = Pitch {
+-- function 'hz'. Pitch contains 'Scale', and point on the tone plane. 
+-- The point is a triple @(bend, octave, step)@. 'Bend'
+-- denotes divergens from vertices of scale grid. 'Octave' and 'Step' 
+-- are integers. 
+data Pitch = Pitch {
         pitchScale   :: Scale,
         pitchBend    :: Bend,
         pitchOctave  :: Octave,
-        pitchStep    :: Mod a
+        pitchStep    :: Step
     } deriving (Show, Eq)
 
-
 -- | 'Bend' represents tone's diversion from scale grid. 
-type Bend    = Double
-type Octave  = Int
+type Bend   = Double
+type Octave = Int
+type Step   = Int      
 
--- | Calculates coordinates for value of type 'Pitch'.
-pitchAsDouble :: Finite a => Pitch a -> Double
-pitchAsDouble p = b + fromIntegral n
-        where n = fromEnum o * domLength s + fromEnum s         
-              s = pitchStep p
-              o = pitchOctave p  
-              b = pitchBend p
+-- | Calculates position on tone plane for value of type 'Pitch'.
+pitchAsDouble :: Pitch -> Double
+pitchAsDouble p = pitchBend p + fromIntegral (pitchAsInt p)
+
+-- | Calculates integer position on tone plane for value of type 'Pitch'
+-- without bend bias.
+pitchAsInt :: Pitch -> Int
+pitchAsInt p = pitchOctave p * (scaleLength $ pitchScale p) + pitchStep p     
+
+instance Default Pitch where
+    def = Pitch def def def def
 
 -- Scale
 
@@ -92,26 +86,20 @@ data Scale = Scale {
         scaleSteps  :: V.Vector Interval
     } deriving (Show, Eq)
 
--- | 'Scale' constructor.
-fromIntervals ::  
-        Interval -> [Interval]
-    -> (Hz -> Scale)
-fromIntervals octave steps = \f0 -> Scale f0 octave $ V.fromList steps
 
--- | You can assign 'Scale' to some type. Intention of 'Pitch'
--- type is to provide user with freedom of choice for 
--- musical alphabet. You can give your own names to steps
--- and then assign some default 'Scale' to them.
-class HasScale a where
-    -- | Constant function that returns 'Scale' 
-    -- for same type. 
-    defScale :: a -> Scale
+instance Default Scale where
+    def = eqt c1
+        where eqt = fromIntervals 2 (map ((2 **) . (/12)) [0 .. 11]) 
+
+-- | 'Scale' constructor.
+fromIntervals :: Interval -> [Interval] -> (Hz -> Scale)
+fromIntervals octave steps = \f0 -> Scale f0 octave $ V.fromList steps
 
 -- | Scale value on doubles          
 scaleAt :: Scale -> Double -> Hz
 scaleAt s x = scaleAtInt s d * bendCoeff s n r 
     where (d, r) = properFraction x          
-          n      = mod d $ scaleSize s
+          n      = mod d $ scaleLength s
 
 
 -- | 'Pitch' should be used alongside with many
@@ -123,35 +111,34 @@ scaleAt s x = scaleAtInt s d * bendCoeff s n r
 -- have chosen some note representation you can make an instance 
 -- for it and use all pitch-modifiers.
 class PitchLike a where
-    type Step a :: *
-    setPitch :: Pitch (Step a) -> a -> a
-    getPitch :: a -> Pitch (Step a)
+    setPitch :: Pitch -> a -> a
+    getPitch :: a -> Pitch
 
 -- | Pitch modifier.
-mapPitch :: PitchLike a => (Pitch (Step a) -> Pitch (Step a)) -> a -> a
+mapPitch :: PitchLike a => (Pitch -> Pitch) -> a -> a
 mapPitch f x = setPitch (f $ getPitch x) x
 
-instance PitchLike (Pitch a) where
-    type Step (Pitch a) = a
+instance PitchLike Pitch where
     setPitch = const id
     getPitch = id
+
 
 -- | Constructs 'Pitch' from some step value. 'Bend' and
 -- 'Octave' are set to zeroes. 'Scale' is set to default scale
 -- which is defined in 'HasScale' class.
-fromStep :: HasScale a => a -> Pitch a
-fromStep a = Pitch (defScale a) 0 0 $ Mod a
+fromStep :: Int -> Pitch
+fromStep a = def{ pitchStep = a }
 
 
 -- | Gives scale multiplier
 scaleStep :: Scale -> Int -> Interval
 scaleStep s x = (scaleOctave s ^^ o) * scaleSteps s V.! n    
-    where (o, n) = divMod x $ scaleSize s
+    where (o, n) = divMod x $ scaleLength s
 
 
 -- | Gives number of steps in one octave.
-scaleSize :: Scale -> Int
-scaleSize = V.length . scaleSteps
+scaleLength :: Scale -> Int
+scaleLength = V.length . scaleSteps
 
 
 -- | Transpose cycles per second by some interval.
@@ -161,12 +148,11 @@ transpose k a = k * a
 ---------------------------------------------------------
 -- rendering
 
-
-absPitch :: (Finite a) => Pitch a -> Hz
+absPitch :: Pitch -> Hz
 absPitch p = pitchScale p `scaleAt` pitchAsDouble p
 
 -- | Calculates cycles per second for a pitch.
-hz :: (Finite (Step a), PitchLike a) => a -> Hz
+hz :: PitchLike a => a -> Hz
 hz = absPitch . getPitch
 
 
@@ -185,7 +171,7 @@ bendCoeff s n x
             | x == n          = o
             | x == -1         = scaleSteps s V.! (n-1) / o
             | otherwise       = error $ "scaleStep: out of bounds"
-            where n = scaleSize s
+            where n = scaleLength s
                   o = scaleOctave s
 
 
