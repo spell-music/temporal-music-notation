@@ -7,17 +7,19 @@ module Temporal.Music.Track(
     -- * Composition
     -- | Look at "Temporal.Media" module for functions 
     -- that perform composition of tracks.
-    Score, module Temporal.Media,
+    module Temporal.Media,
     -- * Volume control
     setDiap, setDiapRel, setLevel, setAccent, accent, (!),
-    louder, quieter, loud, quiet, envelope,
+    louder, quieter, loud, quiet, envelope, envelopeSeg, envelopeRel, 
     -- * Pitch control
     setScale, setBend, setStep, step, bend,
     lower, higher, low, high, l', ll', hh', h',
     invert,
     -- * Time stretching   
-    -- | Shortcuts for time stretching 
-    -- Naming conventions : 
+    r, dot, ddot, tri, bpm,
+
+    -- ** Shortcuts
+    -- | Naming conventions : 
     --
     -- First part @x@ can be [b | w | h | q | e | s | t | d[x] ] 
     --
@@ -36,11 +38,10 @@ module Temporal.Music.Track(
     -- @t@ means thirty second @(stretch $ 1/32)@
     --
     -- @d[x]@ means dotted [x] @(stretch 1.5 $ x)@
-    r, dot,
     bn, wn, hn, qn, en, sn, tn,
     dbn, dwn, dhn, dqn, den, dsn, dtn,
 
-    -- * Pauses
+    -- ** Pauses
     -- | Naming conventions are the same as for 'time stretching'.
     bnr, wnr, hnr, qnr, enr, snr, tnr,
     dbnr, dwnr, dhnr, dqnr, denr, dsnr, dtnr
@@ -52,9 +53,6 @@ import Temporal.Media
 import Temporal.Music.Pitch
 import Temporal.Music.Volume
 import Data.Finite
-
-
-type Score a = Track Double a
 
 -------------------------------------------------------
 -- Volume control
@@ -116,10 +114,21 @@ quiet = quieter 1
 
 
 -- | Accent that depends on time of note
-envelope :: (Fractional t, VolumeLike a) 
+envelope :: (Time t, Fractional t, VolumeLike a) 
     => (t -> Accent) -> Track t a -> Track t a
 envelope f = tmap $ \(Event s d c) -> accent' c (f s)
     where accent' v a = mapVolume (\v -> v{ volumeAccent = a }) v 
+
+-- | 'envelopeSeg' lifts function 'linseg' to dynamics level
+envelopeSeg :: (Real t, Time t, Fractional t, VolumeLike a)
+    => [Double] -> Track t a -> Track t a
+envelopeSeg xs = envelope $ (linseg xs . realToFrac)
+
+-- | 'envelopeRel' lifts function 'linsegRel' to dynamics level
+envelopeRel :: (Real t, Time t, Fractional t, VolumeLike a)
+    => [Accent] -> Track t a -> Track t a
+envelopeRel xs a = envelope (linsegRel (realToFrac $ dur a) xs . realToFrac) a
+
 
 ---------------------------------------------------------
 -- Pitch control
@@ -210,6 +219,18 @@ invert center = fmap $ mapPitch $
 r :: Time t => t -> Track t a
 r = rest
 
+-- | Means 'triolet'. Plays three notes as fast as two.
+tri :: (Fractional t, Time t) => Track t a -> Track t a
+tri = stretch (2/3)
+
+
+-- | Sets tempo in beats per minute, 
+-- if 1 "Dur" is equal to 1 second before transformation.
+bpm :: (Fractional t, Time t) => t -> (Track t a -> Track t a)
+bpm beat = stretch (x1/x0)
+    where x0 = 0.25
+          x1 = 60/beat
+
 bn, wn, hn, qn, en, sn, tn  :: 
     (Fractional t, Time t) => Track t a -> Track t a
 
@@ -227,6 +248,10 @@ dbn, dwn, dhn, dqn, den, dsn, dtn ::
 -- | Synonym to @'stretch' (3/2)@
 dot :: (Fractional t, Time t) => Track t a -> Track t a
 dot = stretch $ 3/2
+
+-- | double 'dot', stretch with 1.75
+ddot :: (Fractional t, Time t) => Track t a -> Track t a
+ddot = stretch 1.75
 
 dbn = dot . bn
 dwn = dot . wn

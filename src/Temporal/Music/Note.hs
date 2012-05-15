@@ -5,18 +5,11 @@
 module Temporal.Music.Note(
         -- * Types
         Note(..), note,
-        Drum(..), drum, bam,
-        -- * Drum shortcuts
-        -- | Time stretched variants of function 'bam'.        
-        bd, wd, hd, qd, ed, sd, td, 
-        dbd, dwd, dhd, dqd, ded, dsd, dtd
-    )
-where
+        Drum(..), drum, bam
+) where
 
 import Data.Finite
-import Temporal.Media(temp)
-import Temporal.Music.Track(Score, accent, dot,
-        bn, wn, hn, qn, en, sn, tn)
+import Temporal.Music.Track(Time, Track, temp, accent)
 import Temporal.Music.Volume
 import Temporal.Music.Pitch
 
@@ -67,34 +60,7 @@ drum :: HasDiap vol => vol -> Drum vol a
 drum vol = Drum (fromLevel vol) Nothing
 
 -- | Constructs drum note with given accent. Level is set to medium value.
-bam :: (HasDiap vol, Finite vol) => Accent -> Score (Drum vol a)
+bam :: (Time t, HasDiap vol, Finite vol) => Accent -> Track t (Drum vol a)
 bam a = accent a $ temp $ Drum mediumVolume Nothing
-
---------------------------------------------------------------
--- time stretching 
---
-
-bd, wd, hd, qd, ed, sd, td :: 
-    (HasDiap vol, Finite vol) => Accent -> Score (Drum vol a)
-
-bd = bn . bam
-wd = bam
-hd = hn . bam
-qd = qn . bam
-ed = en . bam
-sd = sn . bam 
-td = tn . bam
-
-dbd, dwd, dhd, dqd, ded, dsd, dtd :: 
-    (HasDiap vol, Finite vol) => Accent -> Score (Drum vol a) 
-
-dbd = dot . bd
-dwd = dot . wd
-dhd = dot . hd
-dqd = dot . qd
-ded = dot . ed
-dsd = dot . sd
-dtd = dot . td
-
 
 
