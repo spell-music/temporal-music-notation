@@ -1,4 +1,4 @@
--- | Main musical transformations
+-- | Composition and control.
 module Temporal.Music.Score(
     -- * Types
     Dur, Score, Event(..), eventEnd, within,
@@ -68,8 +68,17 @@ import qualified Temporal.Media as M
 import Temporal.Music.Pitch
 import Temporal.Music.Volume
 import Data.Monoid
+import Data.Foldable
 
 type Dur = Double
+
+-- | Instances
+--
+-- * 'Functor' 'Score'
+--
+-- * 'Foldable' 'Score'
+--
+-- * 'Monoid' @(@'Score' @a)@
 type Score a = M.Track Double a
 
 -------------------------------------------------------
@@ -170,14 +179,14 @@ dropS = M.dropT
 
 -- | Filter score.
 filterEvents :: (Event Dur a -> Bool) -> Score a -> Score a
-filterEvents = M.filterE
+filterEvents = M.filterEvents
 
 ------------------------------------------------------
 -- mapping
 
 -- | General mapping. Mapps not only values but events.
 mapEvents :: (Event Dur a -> Event Dur b) -> Score a -> Score b
-mapEvents = M.mapE
+mapEvents = M.mapEvents
 
 -- | Mapps values and time stamps.
 tmap :: (Event Dur a -> b) -> Score a -> Score b
@@ -253,9 +262,10 @@ quiet :: (VolumeLike a) => Score a -> Score a
 quiet = quieter 1
 
 
--- | Accent that depends on time of note
+-- | Accent that depends on time of note, time is relative, 
+-- so 'Score' starts at 't = 0' and ends at 't = 1'.
 envelope :: (VolumeLike a) => (Dur -> Accent) -> Score a -> Score a
-envelope f = tmap $ \(Event s d c) -> accent' c (f s)
+envelope f = tmapRel $ \(Event s d c) -> accent' c (f s)
     where accent' v a = mapVolume (\v -> v{ volumeAccent = a }) v 
 
 -- | 'envelopeSeg' lifts function 'linseg' to dynamics level
@@ -264,7 +274,7 @@ envelopeSeg xs = envelope $ (linseg xs)
 
 -- | 'envelopeRel' lifts function 'linsegRel' to dynamics level
 envelopeRel :: (VolumeLike a) => [Accent] -> Score a -> Score a
-envelopeRel xs a = envelope (linsegRel (dur a) xs) a
+envelopeRel xs a = envelope (linsegRel 1 xs) a
 
 
 ---------------------------------------------------------

@@ -9,7 +9,7 @@ module Temporal.Music.Pitch (
     -- * PitchLike
     PitchLike(..), mapPitch,
     -- * Render  
-    hz, scaleAt
+    hz, pitchAsDouble, scaleAt
 )
 where
 

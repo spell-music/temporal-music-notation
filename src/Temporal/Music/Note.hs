@@ -4,8 +4,8 @@
 -- It defines the notion of note. 
 module Temporal.Music.Note(
         -- * Types
-        Note(..), note, 
-        Drum(..), bam,
+        Note(..), note, mapNoteParam,
+        Drum(..), bam, mapDrumParam,
         -- * Shortcuts
         -- ** Note shortcuts
         -- | Function n[i] is equivalent to call @note i@.
@@ -34,6 +34,13 @@ data Note a = Note {
     } deriving (Show, Eq)
 
 
+instance Functor Note where
+    fmap f n = Note 
+        { notePitch = notePitch n
+        , noteVolume = noteVolume n
+        , noteParam = fmap f $ noteParam n
+        }
+
 instance PitchLike (Note a) where
     setPitch p a    = a{ notePitch = p }
     getPitch        = notePitch
@@ -49,6 +56,12 @@ instance Default (Note a) where
 note :: Step -> Score (Note a)
 note a = temp $ Note def def{ pitchStep = a } def
 
+mapNoteParam :: (Maybe a -> Maybe b) -> Note a -> Note b
+mapNoteParam f n = Note
+        { notePitch = notePitch n
+        , noteVolume = noteVolume n
+        , noteParam = f $ noteParam n
+        }
 
 -- drum
 
@@ -57,6 +70,12 @@ data Drum a = Drum {
         drumVolume  :: Volume,
         drumParam   :: Maybe a
     } deriving (Show, Eq)
+
+instance Functor Drum where
+    fmap f n = Drum 
+        { drumVolume = drumVolume n
+        , drumParam = fmap f $ drumParam n
+        }
 
 instance VolumeLike (Drum a) where
     setVolume v a   = a{ drumVolume = v }
@@ -69,6 +88,12 @@ instance Default (Drum a) where
 -- value.
 bam :: Accent -> Score (Drum a)
 bam a = accent a $ temp def
+
+mapDrumParam :: (Maybe a -> Maybe b) -> Drum a -> Drum b
+mapDrumParam f n = Drum
+        { drumVolume = drumVolume n
+        , drumParam = f $ drumParam n
+        }
 
 
 --------------------------------------------------------------

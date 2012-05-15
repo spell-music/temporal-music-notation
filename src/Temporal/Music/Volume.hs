@@ -5,7 +5,7 @@ module Temporal.Music.Volume(
         -- * VolumeLike
         VolumeLike(..), mapVolume,
         -- * Rendering
-        amp, diapAt) 
+        amp, volumeAsDouble, diapAt) 
 where
 
 import Data.Default
