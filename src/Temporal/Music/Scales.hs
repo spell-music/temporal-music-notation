@@ -26,7 +26,7 @@ module Temporal.Music.Scales
 where
 
 import Temporal.Music.Pitch(Hz, Interval, 
-        Scale(..), scaleSize, fromIntervals)
+        Scale(..), scaleLength, fromIntervals)
 import qualified Data.Vector as V
 
 sliceScale :: Int -> [Int] -> Scale -> Scale 
@@ -108,7 +108,7 @@ eqt = fromIntervals 2 (map ((2 **) . (/12)) [0 .. 11])
 -- | general equal temperament scale
 eqts :: Hz -> Scale
 eqts = res 
-    where n = scaleSize $ res 0 
+    where n = scaleLength $ res 0 
           res = fromIntervals 2 $ 
             (map ((2 **) . (/fromIntegral n) . fromIntegral) [0 .. n-1])
 

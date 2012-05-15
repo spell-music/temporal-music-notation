@@ -15,13 +15,13 @@ Build-Type:    Simple
 Library
   Build-Depends:
         base >= 4, base < 5,
-        vector >= 0.7, 
-        temporal-media >= 0.3.0, finite >= 0.1
+        vector >= 0.7, data-default >= 0,
+        temporal-media >= 0.3.0
   Hs-Source-Dirs:      src/
   Exposed-Modules:
         Temporal.Music
         Temporal.Music.Volume
         Temporal.Music.Pitch
-        Temporal.Music.Track
+        Temporal.Music.Score
         Temporal.Music.Note
         Temporal.Music.Scales

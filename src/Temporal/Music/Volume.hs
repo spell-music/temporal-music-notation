@@ -1,62 +1,46 @@
-{-# LANGUAGE 
-       TypeFamilies,
-       FlexibleContexts #-}
-
 -- | This module defines the notion of volume.
 module Temporal.Music.Volume(
-        Amp, Diap(..),
-        -- * Volume
-        Volume(..), fromLevel, mediumVolume, Accent, HasDiap(..),
+        -- * Types
+        Amp, Diap(..), Volume(..), Level, Accent,
         -- * VolumeLike
         VolumeLike(..), mapVolume,
         -- * Rendering
         amp, volumeAsDouble, diapAt) 
 where
 
-import Data.Finite 
+import Data.Default
 
 -- | Amplitude.
 type Amp = Double
 
 -- | Diapason defines minimum and maximum bound for 'Volume' level.
-type Diap = (Amp, Amp)
+data Diap = Diap
+    { diapRange :: (Amp, Amp)
+    , diapLim   :: Int
+    } deriving (Show, Eq)
+
+
+instance Default Diap where
+    def = Diap (1e-5, 1) 5
 
 -- | 'Accent' defines values between 'volumeLevel' values on logarithmic 
 -- scale. 1 'Accent' == 1 'volumeLevel' 's step.
 type Accent = Double 
+type Level  = Int
 
 -- | 'Volume' denotes 'Amp' value. It's not a 'Double' 
 -- for ease of performing some musical transformations, such as
 -- making notes louder or using accents. 'Volume' can be converted
 -- to 'Amp' with function 'amp'.
-data Volume a = Volume {
+data Volume = Volume {
         volumeDiap      :: Diap,
         volumeAccent    :: Accent,
-        volumeLevel     :: Sat a
+        volumeLevel     :: Level
     } deriving (Show, Eq)
 
 
--- | Constructs value of type 'Volume'. 'Accent' is set to zero.
--- Diapason is set to default value (see 'HasDiap' class). 
-fromLevel :: HasDiap a => a -> Volume a
-fromLevel a = Volume (defDiap a) 0 $ Sat a
-
--- | Constructs value of type 'Volume' with medium 'Level'. 
--- 'Accent' is set to zero. Diapason is set to default value.
-mediumVolume :: (HasDiap a, Finite a) => Volume a
-mediumVolume = Volume (defDiap $ proxy lev) 0 lev
-    where minb = minBound `asTypeOf` lev
-          lev  = toEnum $ fromEnum minb + len2
-          len2 = quot (domLength lev) 2
-          proxy :: Sat a -> a
-          proxy = undefined
-
-
--- | Assign default diapason for some type.
-class HasDiap a where
-    -- | Constant function that returns default diapason.
-    defDiap :: a -> Diap
-
+instance Default Volume where
+    def = Volume def def def
 
 -- | 'Volume' should be used alongside with many
 -- other parameters (they can define timbre or pitch). 
@@ -67,46 +51,51 @@ class HasDiap a where
 -- have chosen some note representation you can make an instance 
 -- for it and use all volume-modifiers.
 class VolumeLike a where
-    type Level a :: *
-
-    setVolume :: Volume (Level a) -> a -> a
-    getVolume :: a -> Volume (Level a)
+    setVolume :: Volume -> a -> a
+    getVolume :: a -> Volume
 
 
-instance VolumeLike (Volume a) where
-    type Level (Volume a) = a
+instance VolumeLike Volume where
     setVolume = const id
     getVolume = id
 
 
 -- | 'Volume' modifier.
-mapVolume :: VolumeLike a =>  
-    (Volume (Level a) -> Volume (Level a)) -> (a -> a)
+mapVolume :: VolumeLike a =>  (Volume -> Volume) -> (a -> a)
 mapVolume f x = setVolume (f (getVolume x)) x
 
 --------------------------------------------
 -- rendering
 --
 
-absVolume :: Finite a => Volume a -> Amp
+absVolume :: Volume -> Amp
 absVolume v = diapAt (volumeDiap v) (volumeAsDouble v)
 
 -- | Calculates amplitude for a 'Volume' -like value.
-amp :: (Finite (Level a), VolumeLike a) => a -> Amp
+amp :: (VolumeLike a) => a -> Amp
 amp = absVolume . getVolume
 
 -- | Calculates value of type 'Volume' as coordinate 
 -- within specidfied diapason. 1 corresponds to maximum bound 
 -- and 0 corresponds to minimum bound.
-volumeAsDouble :: Finite a => Volume a -> Double
-volumeAsDouble v = sat 0 1 $ ((fromIntegral $ fromEnum l) + a)/fromIntegral c
+volumeAsDouble :: Volume -> Double
+volumeAsDouble v = 0.5 + d / 2
     where l = volumeLevel v
           a = volumeAccent v  
-          c = domLength l
+          c = (diapLim $ volumeDiap v)
+          d = sat (-1) 1 $ (fromIntegral l + a) / fromIntegral c
+
+sat :: Ord a => a -> a -> a -> a
+sat a b x 
+    | x < a = a
+    | x > b = b
+    | otherwise = x
+
 
 -- | Mapps decibels to amplitudes within specified amplitude 
 -- diapason, 0 turns to lower diapason value and 1 turns 
 -- to higher diapason value.
 diapAt :: Diap -> Double -> Double
-diapAt (low, high) x = (low * ) $ (high / low) ** x
+diapAt = diapAt' . diapRange
+    where diapAt' (low, high) x = (low * ) $ (high / low) ** x
 
