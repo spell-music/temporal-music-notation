@@ -12,6 +12,13 @@ Stability:     Experimental
 Tested-With:   GHC==6.12.3
 Build-Type:    Simple
 
+Homepage:        https://github.com/anton-k/temporal-music-notation
+Bug-Reports:     https://github.com/anton-k/temporal-music-notation/issues
+
+Source-repository head
+    Type: git
+    Location: https://github.com/anton-k/temporal-music-notation
+
 Library
   Build-Depends:
         base >= 4, base < 5,
