@@ -1,4 +1,4 @@
--- | This module defines the notion of pitch. 
+-- | This module defines notion of pitch. 
 module Temporal.Music.Pitch (
     Hz, Interval, c1, a1, transpose,
     -- * Pitch
@@ -102,11 +102,11 @@ scaleAt s x = scaleAtInt s d * bendCoeff s n r
           n      = mod d $ scaleLength s
 
 
--- | 'Pitch' should be used alongside with many
+-- | 'Pitch' can be used alongside with many
 -- other parameters (they can define timbre or loudness). 
 -- Class 'PitchLike' provides getters and setters for
 -- data types that contain value of type 'Pitch'. 
--- In "Temporal.Music.Track" module you can find many
+-- In "Temporal.Music.Score" module you can find many
 -- functions that are defined in terms of this class. Once you
 -- have chosen some note representation you can make an instance 
 -- for it and use all pitch-modifiers.

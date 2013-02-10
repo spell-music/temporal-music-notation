@@ -14,6 +14,9 @@ import Data.Default
 type Amp = Double
 
 -- | Diapason defines minimum and maximum bound for 'Volume' level.
+-- Field 'diapLim' specifies volume limit. Value 'diapLim' is 
+-- rendered to highest amplitude and @-diapLim@ is rendered to 
+-- the lowest amplitude. All values that go beyond the limit are clipped.
 data Diap = Diap
     { diapRange :: (Amp, Amp)
     , diapLim   :: Int
@@ -26,6 +29,8 @@ instance Default Diap where
 -- | 'Accent' defines values between 'volumeLevel' values on logarithmic 
 -- scale. 1 'Accent' == 1 'volumeLevel' 's step.
 type Accent = Double 
+
+-- | Volume levels.
 type Level  = Int
 
 -- | 'Volume' denotes 'Amp' value. It's not a 'Double' 
@@ -42,11 +47,11 @@ data Volume = Volume {
 instance Default Volume where
     def = Volume def def def
 
--- | 'Volume' should be used alongside with many
+-- | 'Volume' can be used alongside with many
 -- other parameters (they can define timbre or pitch). 
 -- Class 'VolumeLike' provides getters and setters for
 -- data types that contain value of type 'Volume'. 
--- In "Temporal.Music.Track" module you can find many
+-- In "Temporal.Music.Score" module you can find many
 -- functions that are defined in terms of this class. Once you
 -- have chosen some note representation you can make an instance 
 -- for it and use all volume-modifiers.

@@ -6,13 +6,13 @@ module Temporal.Music.Score(
     temp, rest, stretch, delay, reflect, (+|), (*|), (=:=), (+:+), (=:/),
     line, chord, chordT, loop, sustain, sustainT,    
     -- * Filtering
-    clip, takeS, dropS, filterEvents,    
+    slice, takeS, dropS, filterEvents,    
     -- * Mappings
     mapEvents, tmap, tmapRel,
     -- * Rendering
-    render, alignByZero, sortEvents,   
+    dur, render, alignByZero, sortEvents,   
     -- * Miscellaneous
-    linseg, linsegRel,
+    linfun, linfunRel,
     -- ** Monoid synonyms
     --
     -- | This package heavily relies on 'Monoid's, so there are shorcuts
@@ -63,13 +63,14 @@ module Temporal.Music.Score(
 where
 
 import Temporal.Media(Event(..), within, eventEnd, nil, 
-        linseg, linsegRel, alignByZero, sortEvents)
+        linfun, linfunRel, alignByZero, sortEvents)
 import qualified Temporal.Media as M
 import Temporal.Music.Pitch
 import Temporal.Music.Volume
 import Data.Monoid
 import Data.Foldable
 
+-- | Duration.
 type Dur = Double
 
 -- | Instances
@@ -161,19 +162,19 @@ sustainT = M.sustainT
 --------------------------------------------------
 -- filtering
 
--- | 'clip' cuts piece of value within given time interval.
--- for @('clip' t0 t1 m)@, if @t1 < t0@ result is reversed.
+-- | 'slice' cuts piece of value within given time interval.
+-- for @('slice' t0 t1 m)@, if @t1 < t0@ result is reversed.
 -- If @t0@ is negative or @t1@ goes beyond @'dur' m@ blocks of
 -- nothing inserted so that duration of result equals to 
 -- @'abs' (t0 - t1)@.
-clip :: Dur -> Dur -> Score a -> Score a
-clip = M.clip
+slice :: Dur -> Dur -> Score a -> Score a
+slice = M.slice
 
--- | @('takeS' t)@ is equivalent to @('clip' 0 t)@.
+-- | @('takeS' t)@ is equivalent to @('slice' 0 t)@.
 takeS :: Dur -> Score a -> Score a
 takeS = M.takeT
 
--- | @('dropS' t m)@ is equivalent to @('clip' t (dur a) a)@.
+-- | @('dropS' t m)@ is equivalent to @('slice' t (dur a) a)@.
 dropS :: Dur -> Score a -> Score a
 dropS = M.dropT
 
@@ -268,13 +269,13 @@ envelope :: (VolumeLike a) => (Dur -> Accent) -> Score a -> Score a
 envelope f = tmapRel $ \(Event s d c) -> accent' c (f s)
     where accent' v a = mapVolume (\v -> v{ volumeAccent = a }) v 
 
--- | 'envelopeSeg' lifts function 'linseg' to dynamics level
+-- | 'envelopeSeg' lifts function 'lines' to dynamics level
 envelopeSeg :: (VolumeLike a) => [Double] -> Score a -> Score a
-envelopeSeg xs = envelope $ (linseg xs)
+envelopeSeg xs = envelope $ (linfun xs)
 
--- | 'envelopeRel' lifts function 'linsegRel' to dynamics level
+-- | 'envelopeRel' lifts function 'linesRel' to dynamics level
 envelopeRel :: (VolumeLike a) => [Accent] -> Score a -> Score a
-envelopeRel xs a = envelope (linsegRel 1 xs) a
+envelopeRel xs a = envelope (linfunRel 1 xs) a
 
 
 ---------------------------------------------------------

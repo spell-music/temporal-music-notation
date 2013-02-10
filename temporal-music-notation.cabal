@@ -1,5 +1,5 @@
 Name:          temporal-music-notation
-Version:       0.2.0
+Version:       0.2.2
 Cabal-Version: >= 1.2
 License-file:  LICENSE
 License:       BSD3
@@ -15,8 +15,8 @@ Build-Type:    Simple
 Library
   Build-Depends:
         base >= 4, base < 5,
-        vector >= 0.7, data-default >= 0,
-        temporal-media >= 0.3.0
+        vector >= 0.7, data-default >= 0.3,
+        temporal-media >= 0.3.1
   Hs-Source-Dirs:      src/
   Exposed-Modules:
         Temporal.Music
