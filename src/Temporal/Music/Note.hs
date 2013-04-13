@@ -4,8 +4,8 @@
 -- It defines the notion of note. 
 module Temporal.Music.Note(
         -- * Types
-        Note(..), note,
-        Drum(..), bam,
+        Note(..), note, mapNoteParam,
+        Drum(..), bam,  mapDrumParam,
         -- * Shortcuts
         -- ** Note shortcuts
         -- | Function n[i] is equivalent to call @note i@.
@@ -30,7 +30,7 @@ import Temporal.Music.Pitch
 data Note a = Note {
         noteVolume  :: Volume,
         notePitch   :: Pitch,
-        noteParam   :: a
+        noteParam   :: Maybe a
     } deriving (Show, Eq)
 
 
@@ -38,7 +38,7 @@ instance Functor Note where
     fmap f n = Note 
         { notePitch = notePitch n
         , noteVolume = noteVolume n
-        , noteParam = f $ noteParam n
+        , noteParam = fmap f $ noteParam n
         }
 
 instance PitchLike (Note a) where
@@ -49,11 +49,14 @@ instance VolumeLike (Note a) where
     setVolume v a   = a{ noteVolume = v }
     getVolume       = noteVolume
 
-instance Default a => Default (Note a) where
+instance Default (Note a) where
     def = Note def def def
 
+mapNoteParam :: (Maybe a -> Maybe b) -> Note a -> Note b
+mapNoteParam f x = x{ noteParam = f $ noteParam x }
+
 -- | Constructs default 'Note' with given step value.
-note :: Default a => Step -> Score (Note a)
+note :: Step -> Score (Note a)
 note a = temp $ Note def def{ pitchStep = a } def
 
 -- drum
@@ -61,25 +64,28 @@ note a = temp $ Note def def{ pitchStep = a } def
 -- | 'Drum' has only pitch and some timbral paramters.
 data Drum a = Drum {
         drumVolume  :: Volume,
-        drumParam   :: a
+        drumParam   :: Maybe a
     } deriving (Show, Eq)
 
 instance Functor Drum where
     fmap f n = Drum 
         { drumVolume = drumVolume n
-        , drumParam = f $ drumParam n
+        , drumParam = fmap f $ drumParam n
         }
 
 instance VolumeLike (Drum a) where
     setVolume v a   = a{ drumVolume = v }
     getVolume       = drumVolume
 
-instance Default a => Default (Drum a) where
+instance Default (Drum a) where
     def = Drum def def 
+
+mapDrumParam :: (Maybe a -> Maybe b) -> Drum a -> Drum b
+mapDrumParam f x = x{ drumParam = f $ drumParam x }
 
 -- | Constructs drum note with given accent. Level is set to the default
 -- value.
-bam :: Default a => Accent -> Score (Drum a)
+bam :: Accent -> Score (Drum a)
 bam a = accent a $ temp def
 
 --------------------------------------------------------------
@@ -88,7 +94,7 @@ bam a = accent a $ temp def
 
 n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, 
     n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23
-    :: Default a => Score (Note a)
+    :: Score (Note a)
 
 n0 = note 0;    n1 = note 1;    n2 = note 2;    n3 = note 3;
 n4 = note 4;    n5 = note 5;    n6 = note 6;    n7 = note 7;
@@ -102,7 +108,7 @@ n20 = note 20;  n21 = note 21;  n22 = note 22;  n23 = note 23;
 -- drums
 --
 
-bd, wd, hd, qd, ed, sd, td :: Default a => Accent -> Score (Drum a)
+bd, wd, hd, qd, ed, sd, td :: Accent -> Score (Drum a)
 
 bd = bn . bam
 wd = bam
@@ -112,7 +118,7 @@ ed = en . bam
 sd = sn . bam 
 td = tn . bam
 
-dbd, dwd, dhd, dqd, ded, dsd, dtd :: Default a => Accent -> Score (Drum a) 
+dbd, dwd, dhd, dqd, ded, dsd, dtd :: Accent -> Score (Drum a) 
 
 dbd = dot . bd
 dwd = dot . wd

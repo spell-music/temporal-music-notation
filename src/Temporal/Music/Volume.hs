@@ -1,7 +1,7 @@
 -- | This module defines the notion of volume.
 module Temporal.Music.Volume(
         -- * Types
-        Amp, Diap(..), Volume(..), Level, Accent,
+        Diap(..), Volume(..), Level, Accent,
         -- * VolumeLike
         VolumeLike(..), mapVolume,
         -- * Rendering
@@ -10,15 +10,12 @@ where
 
 import Data.Default
 
--- | Amplitude.
-type Amp = Double
-
 -- | Diapason defines minimum and maximum bound for 'Volume' level.
 -- Field 'diapLim' specifies volume limit. Value 'diapLim' is 
 -- rendered to highest amplitude and @-diapLim@ is rendered to 
 -- the lowest amplitude. All values that go beyond the limit are clipped.
 data Diap = Diap
-    { diapRange :: (Amp, Amp)
+    { diapRange :: (Double, Double)
     , diapLim   :: Int
     } deriving (Show, Eq)
 
@@ -33,10 +30,10 @@ type Accent = Double
 -- | Volume levels.
 type Level  = Int
 
--- | 'Volume' denotes 'Amp' value. It's not a 'Double' 
+-- | 'Volume' denotes amplitude. It's not a 'Double' 
 -- for ease of performing some musical transformations, such as
 -- making notes louder or using accents. 'Volume' can be converted
--- to 'Amp' with function 'amp'.
+-- to 'Double' with function 'amp'.
 data Volume = Volume {
         volumeDiap      :: Diap,
         volumeAccent    :: Accent,
@@ -73,11 +70,11 @@ mapVolume f x = setVolume (f (getVolume x)) x
 -- rendering
 --
 
-absVolume :: Volume -> Amp
+absVolume :: Volume -> Double
 absVolume v = diapAt (volumeDiap v) (volumeAsDouble v)
 
 -- | Calculates amplitude for a 'Volume' -like value.
-amp :: (VolumeLike a) => a -> Amp
+amp :: (VolumeLike a) => a -> Double
 amp = absVolume . getVolume
 
 -- | Calculates value of type 'Volume' as coordinate 

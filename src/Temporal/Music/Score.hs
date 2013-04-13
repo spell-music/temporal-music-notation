@@ -3,8 +3,12 @@ module Temporal.Music.Score(
     -- * Types
     Dur, Score, Event(..), eventEnd, within,
     -- * Composition
-    temp, rest, stretch, delay, reflect, (+|), (*|), (=:=), (+:+), (=:/),
-    line, chord, chordT, loop, sustain, sustainT,    
+    temp, event, rest, stretch, delay, reflect, (+|), (*|), (=:=), (+:+), (=:/),
+    line, chord, chordT, loop, sustain, sustainT, 
+    -- ** Common patterns
+    lineTemp, chordTemp, 
+    lineMap, chordMap, chordTMap,    
+      
     -- * Filtering
     slice, takeS, dropS, filterEvents,    
     -- * Mappings
@@ -29,7 +33,7 @@ module Temporal.Music.Score(
     -- | Denotes @lower 1-2@ and @higher 1-2@.
     l', ll', hh', h',
     -- * Time stretching   
-    r, dot, ddot, tri, bpm,
+    r, dot, ddot, trn, bpm,
 
     -- ** Shortcuts
     -- | Naming conventions : 
@@ -91,6 +95,14 @@ type Score a = M.Track Double a
 temp :: a -> Score a
 temp = M.temp
 
+-- | Creates a single event.
+--
+-- > event start dur a 
+--
+-- It happens at time @start@ lasts for @dur@ seconds and contains a value @a@.
+event :: Double -> Dur -> a -> Score a
+event = M.event
+
 -- | Empty 'Score' that lasts for some time.
 rest :: Dur -> Score a
 rest = M.rest
@@ -141,11 +153,30 @@ chord = M.chord
 chordT :: [Score a] -> Score a
 chordT = M.chordT
 
+-- | A line of one events. Each of them lasts for one second.
+lineTemp :: [a] -> Score a
+lineTemp = M.lineTemp
+
+-- | A chord of one events. Each of them lasts for one second.
+chordTemp :: [a] -> Score a
+chordTemp = M.chordTemp
+
+-- | Transforms a sequence and then applies a line.
+lineMap :: (a -> Score b) -> [a] -> Score b
+lineMap = M.lineMap
+
+-- | Transforms a sequence and then applies a chord.
+chordMap :: (a -> Score b) -> [a] -> Score b
+chordMap = M.chordMap
+
+-- | Transforms a sequence and then applies a chordT.
+chordTMap :: (a -> Score b) -> [a] -> Score b
+chordTMap = M.chordTMap
+
 -- | Analog of 'replicate' function for scores. Replicated
 -- scores are played sequentially.
 loop :: Int -> Score a -> Score a
 loop = M.loop 
-
 
 -- | After this transformation events last longer
 -- by some constant amount of time.
@@ -213,7 +244,7 @@ render = M.render
 --
 
 -- | Sets diapason to specified value.
-setDiap :: VolumeLike a => (Amp, Amp) -> Score a -> Score a
+setDiap :: VolumeLike a => (Double, Double) -> Score a -> Score a
 setDiap a = fmap $ mapVolume $ 
     \v -> let d = volumeDiap v
           in  v{ volumeDiap = d{ diapRange = a } }
@@ -364,9 +395,9 @@ invert center = fmap $ mapPitch $
 r :: Dur -> Score a
 r = rest
 
--- | Means 'triolet'. Plays three notes as fast as two.
-tri :: Score a -> Score a
-tri = stretch (2/3)
+-- | Means 'three notes'. Plays three notes as fast as two.
+trn :: Score a -> Score a
+trn = stretch (2/3)
 
 
 -- | Sets tempo in beats per minute, 
