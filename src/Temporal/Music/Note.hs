@@ -4,7 +4,7 @@
 -- It defines the notion of note. 
 module Temporal.Music.Note(
         -- * Types
-        Note(..), note, mapNoteParam,
+        Note(..), nx, mapNoteParam,
         Drum(..), bam,  mapDrumParam,
         -- * Shortcuts
         -- ** Note shortcuts
@@ -55,10 +55,6 @@ instance Default (Note a) where
 mapNoteParam :: (Maybe a -> Maybe b) -> Note a -> Note b
 mapNoteParam f x = x{ noteParam = f $ noteParam x }
 
--- | Constructs default 'Note' with given step value.
-note :: Step -> Score (Note a)
-note a = temp $ Note def def{ pitchStep = a } def
-
 -- drum
 
 -- | 'Drum' has only pitch and some timbral paramters.
@@ -91,6 +87,13 @@ bam a = accent a $ temp def
 --------------------------------------------------------------
 -- notes
 --
+
+-- | Constructs default 'Note' with given step value.
+nx :: Step -> Score (Note a)
+nx = note
+
+note :: Step -> Score (Note a)
+note a = temp $ Note def def{ pitchStep = a } def
 
 n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11, 
     n12, n13, n14, n15, n16, n17, n18, n19, n20, n21, n22, n23
