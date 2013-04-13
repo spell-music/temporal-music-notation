@@ -5,7 +5,7 @@ module Temporal.Music.Volume(
         -- * VolumeLike
         VolumeLike(..), mapVolume,
         -- * Rendering
-        amp, volumeAsDouble, diapAt) 
+        absVolume, volumeAsDouble, diapAt) 
 where
 
 import Data.Default
@@ -70,12 +70,12 @@ mapVolume f x = setVolume (f (getVolume x)) x
 -- rendering
 --
 
-absVolume :: Volume -> Double
-absVolume v = diapAt (volumeDiap v) (volumeAsDouble v)
+renderVolume :: Volume -> Double
+renderVolume v = diapAt (volumeDiap v) (volumeAsDouble v)
 
 -- | Calculates amplitude for a 'Volume' -like value.
-amp :: (VolumeLike a) => a -> Double
-amp = absVolume . getVolume
+absVolume :: (VolumeLike a) => a -> Double
+absVolume = renderVolume . getVolume
 
 -- | Calculates value of type 'Volume' as coordinate 
 -- within specidfied diapason. 1 corresponds to maximum bound 

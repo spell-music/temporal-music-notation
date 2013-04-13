@@ -9,7 +9,7 @@ module Temporal.Music.Pitch (
     -- * PitchLike
     PitchLike(..), mapPitch,
     -- * Render  
-    hz, pitchAsDouble, scaleAt
+    absPitch, pitchAsDouble, scaleAt
 )
 where
 
@@ -148,12 +148,12 @@ transpose k a = k * a
 ---------------------------------------------------------
 -- rendering
 
-absPitch :: Pitch -> Hz
-absPitch p = pitchScale p `scaleAt` pitchAsDouble p
+renderPitch :: Pitch -> Hz
+renderPitch p = pitchScale p `scaleAt` pitchAsDouble p
 
 -- | Calculates cycles per second for a pitch.
-hz :: PitchLike a => a -> Hz
-hz = absPitch . getPitch
+absPitch :: PitchLike a => a -> Hz
+absPitch = renderPitch . getPitch
 
 
 -- | scale value on integers          

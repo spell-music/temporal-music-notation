@@ -25,7 +25,7 @@ module Temporal.Music.Score(
     module Data.Monoid,
     -- * Volume control
     setDiap, setDiapRel, setLevel, setAccent, accent, (!),
-    louder, quieter, loud, quiet, envelope, envelopeSeg, envelopeRel, 
+    louder, quieter, loud, quiet, withAccent, withAccentSeg, withAccentRel, 
     -- * Pitch control
     setScale, setBend, setStep, step, bend,
     lower, higher, low, high, 
@@ -296,17 +296,17 @@ quiet = quieter 1
 
 -- | Accent that depends on time of note, time is relative, 
 -- so 'Score' starts at 't = 0' and ends at 't = 1'.
-envelope :: (VolumeLike a) => (Dur -> Accent) -> Score a -> Score a
-envelope f = tmapRel $ \(Event s d c) -> accent' c (f s)
+withAccent :: (VolumeLike a) => (Dur -> Accent) -> Score a -> Score a
+withAccent f = tmapRel $ \(Event s d c) -> accent' c (f s)
     where accent' v a = mapVolume (\v -> v{ volumeAccent = a }) v 
 
--- | 'envelopeSeg' lifts function 'lines' to dynamics level
-envelopeSeg :: (VolumeLike a) => [Double] -> Score a -> Score a
-envelopeSeg xs = envelope $ (linfun xs)
+-- | 'envelopeSeg' lifts function 'linfun' to dynamics level
+withAccentSeg :: (VolumeLike a) => [Double] -> Score a -> Score a
+withAccentSeg xs = withAccent $ (linfun xs)
 
--- | 'envelopeRel' lifts function 'linesRel' to dynamics level
-envelopeRel :: (VolumeLike a) => [Accent] -> Score a -> Score a
-envelopeRel xs a = envelope (linfunRel 1 xs) a
+-- | 'envelopeRel' lifts function 'linfunRel' to dynamics level
+withAccentRel :: (VolumeLike a) => [Accent] -> Score a -> Score a
+withAccentRel xs a = withAccent (linfunRel 1 xs) a
 
 
 ---------------------------------------------------------
