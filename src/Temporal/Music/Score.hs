@@ -97,9 +97,9 @@ temp = M.temp
 
 -- | Creates a single event.
 --
--- > event start dur a 
+-- > event dur a 
 --
--- It happens at time @start@ lasts for @dur@ seconds and contains a value @a@.
+-- Event lasts for some time and contains a value @a@.
 event :: Dur -> a -> Score a
 event = M.event
 
