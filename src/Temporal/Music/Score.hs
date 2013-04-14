@@ -100,7 +100,7 @@ temp = M.temp
 -- > event start dur a 
 --
 -- It happens at time @start@ lasts for @dur@ seconds and contains a value @a@.
-event :: Double -> Dur -> a -> Score a
+event :: Dur -> a -> Score a
 event = M.event
 
 -- | Empty 'Score' that lasts for some time.
