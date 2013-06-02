@@ -1,6 +1,6 @@
 Name:          temporal-music-notation
 Version:       0.2.3
-Cabal-Version: >= 1.2
+Cabal-Version: >= 1.6
 License-file:  LICENSE
 License:       BSD3
 Author:	       Anton Kholomiov
