@@ -3,11 +3,11 @@ module Temporal.Music.Score(
     -- * Types
     Dur, Score, Event(..), eventEnd, within,
     -- * Composition
-    temp, event, rest, stretch, delay, reflect, (+|), (*|), (=:=), (+:+), (=:/),
-    line, chord, chordT, loop, sustain, sustainT, 
+    temp, rest, str, del, reflect, (+|), (*|), (=:=), (+:+), (=:/),
+    mel, har, harT, loop, sustain, sustainT, 
     -- ** Common patterns
-    lineTemp, chordTemp, 
-    lineMap, chordMap, chordTMap,    
+    melTemp, harTemp, 
+    melMap, harMap, harTMap,    
       
     -- * Filtering
     slice, takeS, dropS, filterEvents,    
@@ -40,28 +40,31 @@ module Temporal.Music.Score(
     --
     -- First part @x@ can be [b | w | h | q | e | s | t | d[x] ] 
     --
-    -- @b@ means brewis @(stretch 2)@
+    -- @b@ means brewis @(str 2)@
     --
-    -- @w@ means whole @(stretch 1)@
+    -- @w@ means whole @(str 1)@
     --
-    -- @h@ means half @(stretch $ 1/2)@
+    -- @h@ means half @(str $ 1/2)@
     --
-    -- @q@ means quater @(stretch $ 1/4)@
+    -- @q@ means quater @(str $ 1/4)@
     --
-    -- @e@ means eighth @(stretch $ 1/8)@
+    -- @e@ means eighth @(str $ 1/8)@
     -- 
-    -- @s@ means sixteenth @(stretch $ 1/16)@
+    -- @s@ means sixteenth @(str $ 1/16)@
     -- 
-    -- @t@ means thirty second @(stretch $ 1/32)@
+    -- @t@ means thirty second @(str $ 1/32)@
     --
-    -- @d[x]@ means dotted [x] @(stretch 1.5 $ x)@
+    -- @d[x]@ means dotted [x] @(str 1.5 $ x)@
     bn, wn, hn, qn, en, sn, tn,
     dbn, dwn, dhn, dqn, den, dsn, dtn,
 
     -- ** Pauses
-    -- | Naming conventions are the same as for 'time stretching'.
+    -- | Naming conventions are the same as for 'time string'.
     bnr, wnr, hnr, qnr, enr, snr, tnr,
-    dbnr, dwnr, dhnr, dqnr, denr, dsnr, dtnr
+    dbnr, dwnr, dhnr, dqnr, denr, dsnr, dtnr,
+
+    -- * Deprecated
+    line, chord, delay, stretch
     )
 
 where
@@ -95,33 +98,25 @@ type Score a = M.Track Double a
 temp :: a -> Score a
 temp = M.temp
 
--- | Creates a single event.
---
--- > event dur a 
---
--- Event lasts for some time and contains a value @a@.
-event :: Dur -> a -> Score a
-event = M.event
-
 -- | Empty 'Score' that lasts for some time.
 rest :: Dur -> Score a
 rest = M.rest
 
 -- | Delays all events by given duration. 
-delay :: Dur -> Score a -> Score a
-delay = M.delay
+del :: Dur -> Score a -> Score a
+del = M.del
 
 -- | Stretches 'Score' in time domain.
-stretch :: Dur -> Score a -> Score a
-stretch = M.stretch
+str :: Dur -> Score a -> Score a
+str = M.str
 
--- | Infix 'delay' function.
+-- | Infix 'del' function.
 (+|) :: Dur -> Score a -> Score a
-(+|) = delay
+(+|) = del
 
--- | Infix 'stretch' function.
+-- | Infix 'str' function.
 (*|) :: Dur -> Score a -> Score a
-(*|) = stretch
+(*|) = str
 
 -- | Reversing the scores
 reflect :: Score a -> Score a
@@ -142,36 +137,36 @@ reflect = M.reflect
 (=:/) = (M.=:/)
 
 -- | Sequent composition on list of scores.
-line :: [Score a] -> Score a
-line = M.line
+mel :: [Score a] -> Score a
+mel = M.mel
 
 -- | Parallel composition on list of scores.
-chord :: [Score a] -> Score a
-chord = M.chord
+har :: [Score a] -> Score a
+har = M.har
 
 -- | Turncating parallel composition on list of scores.
-chordT :: [Score a] -> Score a
-chordT = M.chordT
+harT :: [Score a] -> Score a
+harT = M.harT
 
--- | A line of one events. Each of them lasts for one second.
-lineTemp :: [a] -> Score a
-lineTemp = M.lineTemp
+-- | A melody of events. Each of them lasts for one second.
+melTemp :: [a] -> Score a
+melTemp = M.melTemp
 
--- | A chord of one events. Each of them lasts for one second.
-chordTemp :: [a] -> Score a
-chordTemp = M.chordTemp
+-- | A chord of events. Each of them lasts for one second.
+harTemp :: [a] -> Score a
+harTemp = M.harTemp
 
--- | Transforms a sequence and then applies a line.
-lineMap :: (a -> Score b) -> [a] -> Score b
-lineMap = M.lineMap
+-- | Transforms a sequence and then applies a mel.
+melMap :: (a -> Score b) -> [a] -> Score b
+melMap = M.melMap
 
--- | Transforms a sequence and then applies a chord.
-chordMap :: (a -> Score b) -> [a] -> Score b
-chordMap = M.chordMap
+-- | Transforms a sequence and then applies a har.
+harMap :: (a -> Score b) -> [a] -> Score b
+harMap = M.harMap
 
--- | Transforms a sequence and then applies a chordT.
-chordTMap :: (a -> Score b) -> [a] -> Score b
-chordTMap = M.chordTMap
+-- | Transforms a sequence and then applies a harT.
+harTMap :: (a -> Score b) -> [a] -> Score b
+harTMap = M.harTMap
 
 -- | Analog of 'replicate' function for scores. Replicated
 -- scores are played sequentially.
@@ -397,35 +392,35 @@ r = rest
 
 -- | Means 'three notes'. Plays three notes as fast as two.
 trn :: Score a -> Score a
-trn = stretch (2/3)
+trn = str (2/3)
 
 
 -- | Sets tempo in beats per minute, 
 -- if 1 "Dur" is equal to 1 second before transformation.
 bpm :: Dur -> (Score a -> Score a)
-bpm beat = stretch (x1/x0)
+bpm beat = str (x1/x0)
     where x0 = 0.25
           x1 = 60/beat
 
 bn, wn, hn, qn, en, sn, tn  :: Score a -> Score a
 
-bn = stretch 2
+bn = str 2
 wn = id
-hn = stretch $ 1/2
-qn = stretch $ 1/4
-en = stretch $ 1/8
-sn = stretch $ 1/16
-tn = stretch $ 1/32
+hn = str $ 1/2
+qn = str $ 1/4
+en = str $ 1/8
+sn = str $ 1/16
+tn = str $ 1/32
 
 dbn, dwn, dhn, dqn, den, dsn, dtn :: Score a -> Score a
 
--- | Synonym to @'stretch' (3/2)@
+-- | Synonym to @'str' (3/2)@
 dot :: Score a -> Score a
-dot = stretch $ 3/2
+dot = str $ 3/2
 
--- | double 'dot', stretch with 1.75
+-- | double 'dot', str with 1.75
 ddot :: Score a -> Score a
-ddot = stretch 1.75
+ddot = str 1.75
 
 dbn = dot . bn
 dwn = dot . wn
@@ -456,4 +451,28 @@ dqnr = dqn wnr
 denr = den wnr
 dsnr = dsn wnr
 dtnr = dtn wnr
+
+---------------------------------------------------
+-- deprecated 
+
+{-# DEPRECATED line    "Use mel" #-}
+{-# DEPRECATED chord   "Use har" #-}
+{-# DEPRECATED delay   "Use del" #-}
+{-# DEPRECATED stretch "Use str" #-}
+
+-- | Deprecated in favour of @mel@.
+line :: [Score a] -> Score a
+line = mel
+
+-- | Deprecated in favour of @har@.
+chord :: [Score a] -> Score a
+chord = har
+
+-- | Deprecated in favour of @del@.
+delay :: Double -> Score a -> Score a
+delay = del
+
+-- | Deprecated in favour of @str@.
+stretch :: Double -> Score a -> Score a
+stretch = str
 

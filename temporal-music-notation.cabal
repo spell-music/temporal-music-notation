@@ -22,8 +22,8 @@ Source-repository head
 Library
   Build-Depends:
         base >= 4, base < 5,
-        vector >= 0.7, data-default >= 0.3,
-        temporal-media >= 0.3.3
+        vector >= 0.7, data-default,
+        temporal-media >= 0.4.0
   Hs-Source-Dirs:      src/
   Exposed-Modules:
         Temporal.Music
