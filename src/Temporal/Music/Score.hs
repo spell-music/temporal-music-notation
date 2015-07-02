@@ -171,7 +171,7 @@ harTMap = M.harTMap
 -- | Analog of 'replicate' function for scores. Replicated
 -- scores are played sequentially.
 loop :: Int -> Score a -> Score a
-loop = M.loop 
+loop = M.loopBy
 
 -- | After this transformation events last longer
 -- by some constant amount of time.
